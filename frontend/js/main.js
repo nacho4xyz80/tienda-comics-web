@@ -229,24 +229,114 @@ function agregarAlCarrito(comic) {
 
 // --- INICIALIZADOR ÚNICO ---
 // Ejecutar cuando la página web haya cargado completamente
+// document.addEventListener('DOMContentLoaded', () => {
+    
+//     // 1. Si estamos en index.html (existe el contenedor de cómics)
+//     if (document.getElementById('comics-container')) {
+//         cargarComics();
+//     }
+    
+//     // 2. Si estamos en detalle.html (existe el contenedor del detalle)
+//     if (document.getElementById('detalle-contenedor')) {
+//         cargarDetalleComic();
+//     }
+    
+//     // 3. Si estamos en carrito.html (existe la tabla del carrito)
+//     if (document.getElementById('cuerpo-carrito')) {
+//         cargarCarrito();
+//     }
+
+//     // 4. El contador de la barra de navegación está en todas las páginas, 
+//     // así que lo actualizamos siempre.
+//     actualizarContadorCarrito();
+// });
+
+
+// login.html
+
+// --- FUNCIONES DE LOGIN Y SESIÓN ---
+
+// Función para enviar las credenciales a la API
+async function manejarLogin(evento) {
+    // Evitamos que el formulario recargue la página al pulsar "Entrar"
+    evento.preventDefault(); 
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const divMensaje = document.getElementById('mensaje-login');
+
+    try {
+        // Hacemos un POST a nuestra API de FastAPI
+        const respuesta = await fetch(`${API_URL}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email, password: password })
+        });
+
+        const data = await respuesta.json();
+
+        if (respuesta.ok) {
+            // LOGIN EXITOSO: Guardamos los datos del usuario en localStorage
+            localStorage.setItem('usuarioLogueado', JSON.stringify(data.usuario));
+            
+            divMensaje.innerHTML = `<div class="alert alert-success">¡Bienvenido, ${data.usuario.nombre}! Redirigiendo...</div>`;
+            
+            // Esperamos 1.5 segundos y lo mandamos a la portada
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        } else {
+            // ERROR (Contraseña o email incorrectos)
+            divMensaje.innerHTML = `<div class="alert alert-danger">${data.detail}</div>`;
+        }
+    } catch (error) {
+        console.error("Error en login:", error);
+        divMensaje.innerHTML = `<div class="alert alert-danger">Error al conectar con el servidor.</div>`;
+    }
+}
+
+// Función para cambiar el menú si el usuario ya inició sesión
+function verificarSesion() {
+    const usuarioString = localStorage.getItem('usuarioLogueado');
+    const navLogin = document.getElementById('nav-login'); 
+
+    if (usuarioString && navLogin) {
+        const usuario = JSON.parse(usuarioString);
+        // Cambiamos "Login" por el nombre del usuario y un botón de salir
+        navLogin.innerHTML = `Hola, ${usuario.nombre} | <span style="cursor:pointer; color:#ff6b6b;" onclick="cerrarSesion()">Salir</span>`;
+        navLogin.href = "#"; // Desactivamos el link a login.html
+    }
+}
+
+// Función para cerrar sesión
+function cerrarSesion() {
+    localStorage.removeItem('usuarioLogueado');
+    window.location.reload(); // Recargamos la página
+}
+
+
+// --- INICIALIZADOR ÚNICO ---
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 1. Si estamos en index.html (existe el contenedor de cómics)
     if (document.getElementById('comics-container')) {
         cargarComics();
     }
-    
-    // 2. Si estamos en detalle.html (existe el contenedor del detalle)
     if (document.getElementById('detalle-contenedor')) {
         cargarDetalleComic();
     }
-    
-    // 3. Si estamos en carrito.html (existe la tabla del carrito)
     if (document.getElementById('cuerpo-carrito')) {
         cargarCarrito();
     }
+    
+    // NUEVO: Si estamos en login.html, escuchamos al formulario
+    const formLogin = document.getElementById('form-login');
+    if (formLogin) {
+        formLogin.addEventListener('submit', manejarLogin);
+    }
 
-    // 4. El contador de la barra de navegación está en todas las páginas, 
-    // así que lo actualizamos siempre.
+    // SIEMPRE ejecutamos estas dos cosas en TODAS las páginas:
     actualizarContadorCarrito();
+    verificarSesion();
 });
