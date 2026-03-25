@@ -1,3 +1,4 @@
+// index.html 
 // La URL base de tu backend en FastAPI
 const API_URL = 'http://localhost:8000';
 
@@ -40,10 +41,10 @@ async function cargarComics() {
 }
 
 // Ejecutar la función en cuanto la página web cargue
-document.addEventListener('DOMContentLoaded', cargarComics);
+// document.addEventListener('DOMContentLoaded', cargarComics);
 
 
-// --- CÓDIGO NUEVO A AÑADIR AL FINAL DE main.js ---
+// detalle.html
 
 // Función para cargar los detalles de un solo cómic
 async function cargarDetalleComic() {
@@ -99,8 +100,153 @@ function agregarAlCarrito(comic) {
     alert(`¡"${comic.titulo}" añadido al carrito!`);
     
     // Opcional: Actualizar el contador del carrito en la barra de navegación si lo deseas
-    // actualizarContadorCarrito();
+    actualizarContadorCarrito();
 }
 
 // Ejecutamos la función de detalles cuando cargue la página
-document.addEventListener('DOMContentLoaded', cargarDetalleComic);
+// document.addEventListener('DOMContentLoaded', cargarDetalleComic);
+
+
+// carrito.html
+
+// --- CÓDIGO NUEVO A AÑADIR AL FINAL DE main.js ---
+
+// Función para mostrar los productos en la página del carrito
+function cargarCarrito() {
+    const cuerpoCarrito = document.getElementById('cuerpo-carrito');
+    const totalCarrito = document.getElementById('total-carrito');
+    
+    // Si no estamos en la página del carrito, salimos de la función
+    if (!cuerpoCarrito) return;
+
+    // Obtenemos los cómics guardados
+    let carrito = JSON.parse(localStorage.getItem('carritoComics')) || [];
+    
+    // Limpiamos la tabla antes de rellenarla
+    cuerpoCarrito.innerHTML = '';
+    let total = 0;
+
+    if (carrito.length === 0) {
+        cuerpoCarrito.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">Tu carrito está vacío. ¡Ve a comprar algunos cómics!</td></tr>';
+        totalCarrito.textContent = '$0.00';
+        return;
+    }
+
+    // Recorremos el carrito y creamos las filas de la tabla
+    carrito.forEach((comic, index) => {
+        // Asegurarnos de que el precio sea un número
+        const precio = parseFloat(comic.precio);
+        total += precio;
+
+        const fila = `
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <img src="${comic.imagen_url || 'https://via.placeholder.com/50'}" alt="${comic.titulo}" style="width: 50px; height: 75px; object-fit: cover;" class="me-3 rounded">
+                        <strong>${comic.titulo}</strong>
+                    </div>
+                </td>
+                <td>$${precio.toFixed(2)}</td>
+                <td>
+                    <button class="btn btn-sm btn-danger" onclick="eliminarDelCarrito(${index})">Eliminar</button>
+                </td>
+            </tr>
+        `;
+        cuerpoCarrito.innerHTML += fila;
+    });
+
+    // Actualizamos el total en la pantalla
+    totalCarrito.textContent = `$${total.toFixed(2)}`;
+}
+
+// Función para eliminar un solo artículo del carrito
+function eliminarDelCarrito(index) {
+    let carrito = JSON.parse(localStorage.getItem('carritoComics')) || [];
+    carrito.splice(index, 1); // Quita 1 elemento en la posición 'index'
+    localStorage.setItem('carritoComics', JSON.stringify(carrito));
+    
+    cargarCarrito(); // Recargamos la tabla
+    actualizarContadorCarrito(); // Actualizamos el numerito de la barra superior
+}
+
+// Función para vaciar todo el carrito
+function vaciarCarrito() {
+    if(confirm("¿Estás seguro de que quieres vaciar el carrito?")) {
+        localStorage.removeItem('carritoComics');
+        cargarCarrito();
+        actualizarContadorCarrito();
+    }
+}
+
+// Función para simular una compra exitosa
+function simularCompra() {
+    let carrito = JSON.parse(localStorage.getItem('carritoComics')) || [];
+    if (carrito.length === 0) {
+        alert("El carrito está vacío.");
+        return;
+    }
+    
+    alert("¡Compra realizada con éxito! Gracias por tu pedido.");
+    localStorage.removeItem('carritoComics'); // Vaciamos el carrito tras comprar
+    window.location.href = "index.html"; // Redirigimos a la portada
+}
+
+// Función extra: Actualiza el numerito azul en la barra de navegación en TODAS las páginas
+function actualizarContadorCarrito() {
+    const contador = document.getElementById('contador-carrito');
+    if (contador) {
+        let carrito = JSON.parse(localStorage.getItem('carritoComics')) || [];
+        contador.textContent = carrito.length;
+    }
+}
+
+// --- MODIFICACIONES A LOS EVENT LISTENERS EXISTENTES ---
+
+// Asegurarnos de que el carrito y el contador se carguen al iniciar cualquier página
+// document.addEventListener('DOMContentLoaded', () => {
+//     // Estas funciones ya las tenías, las mantenemos:
+//     if (typeof cargarComics === 'function') cargarComics();
+//     if (typeof cargarDetalleComic === 'function') cargarDetalleComic();
+    
+//     // Añadimos estas nuevas:
+//     cargarCarrito();
+//     actualizarContadorCarrito();
+// });
+
+// Busca la función agregarAlCarrito() que creamos en el paso anterior y modifícala 
+// LIGERAMENTE para que llame a actualizarContadorCarrito() al final:
+/*
+function agregarAlCarrito(comic) {
+    let carrito = JSON.parse(localStorage.getItem('carritoComics')) || [];
+    carrito.push(comic);
+    localStorage.setItem('carritoComics', JSON.stringify(carrito));
+    alert(`¡"${comic.titulo}" añadido al carrito!`);
+    
+    // --> ¡AÑADE ESTA LÍNEA AQUÍ! <--
+    actualizarContadorCarrito(); 
+}
+*/
+
+// --- INICIALIZADOR ÚNICO ---
+// Ejecutar cuando la página web haya cargado completamente
+document.addEventListener('DOMContentLoaded', () => {
+    
+    // 1. Si estamos en index.html (existe el contenedor de cómics)
+    if (document.getElementById('comics-container')) {
+        cargarComics();
+    }
+    
+    // 2. Si estamos en detalle.html (existe el contenedor del detalle)
+    if (document.getElementById('detalle-contenedor')) {
+        cargarDetalleComic();
+    }
+    
+    // 3. Si estamos en carrito.html (existe la tabla del carrito)
+    if (document.getElementById('cuerpo-carrito')) {
+        cargarCarrito();
+    }
+
+    // 4. El contador de la barra de navegación está en todas las páginas, 
+    // así que lo actualizamos siempre.
+    actualizarContadorCarrito();
+});
