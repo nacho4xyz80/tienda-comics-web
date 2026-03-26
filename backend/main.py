@@ -30,6 +30,11 @@ class LoginUsuario(BaseModel):
     email: str
     password: str
 
+class CrearUsuario(BaseModel):
+    nombre: str
+    email: str
+    password: str
+
 # --- ENDPOINTS (RUTAS) ---
 
 # Ruta para obtener todos los cómics
@@ -71,5 +76,39 @@ def login(usuario: LoginUsuario):
             if user_db:
                 return {"mensaje": "Login exitoso", "usuario": user_db}
             raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
+    finally:
+        conexion.close()
+
+# Ruta para registrar un nuevo usuario
+@app.post("/usuarios")
+def registrar_usuario(usuario: CrearUsuario):
+    conexion = get_db_connection()
+    try:
+        with conexion.cursor() as cursor:
+            # Primero verificamos si el email ya existe
+            cursor.execute("SELECT id FROM usuarios WHERE email = %s", (usuario.email,))
+            if cursor.fetchone():
+                raise HTTPException(status_code=400, detail="El email ya está registrado")
+            
+            # Si no existe, lo insertamos
+            cursor.execute("INSERT INTO usuarios (nombre, email, password) VALUES (%s, %s, %s)", 
+                           (usuario.nombre, usuario.email, usuario.password))
+            conexion.commit() # Guardar cambios en la base de datos
+            return {"mensaje": "Usuario creado exitosamente"}
+    finally:
+        conexion.close()
+
+# Ruta para eliminar un usuario
+@app.delete("/usuarios/{usuario_id}")
+def eliminar_usuario(usuario_id: int):
+    conexion = get_db_connection()
+    try:
+        with conexion.cursor() as cursor:
+            cursor.execute("DELETE FROM usuarios WHERE id = %s", (usuario_id,))
+            conexion.commit()
+            
+            if cursor.rowcount == 0:
+                raise HTTPException(status_code=404, detail="Usuario no encontrado")
+            return {"mensaje": "Cuenta eliminada correctamente"}
     finally:
         conexion.close()

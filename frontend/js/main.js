@@ -298,15 +298,29 @@ async function manejarLogin(evento) {
 }
 
 // Función para cambiar el menú si el usuario ya inició sesión
+// function verificarSesion() {
+//     const usuarioString = localStorage.getItem('usuarioLogueado');
+//     const navLogin = document.getElementById('nav-login'); 
+
+//     if (usuarioString && navLogin) {
+//         const usuario = JSON.parse(usuarioString);
+//         // Cambiamos "Login" por el nombre del usuario y un botón de salir
+//         navLogin.innerHTML = `Hola, ${usuario.nombre} | <span style="cursor:pointer; color:#ff6b6b;" onclick="cerrarSesion()">Salir</span>`;
+//         navLogin.href = "#"; // Desactivamos el link a login.html
+//     }
+// }
 function verificarSesion() {
     const usuarioString = localStorage.getItem('usuarioLogueado');
     const navLogin = document.getElementById('nav-login'); 
 
     if (usuarioString && navLogin) {
         const usuario = JSON.parse(usuarioString);
-        // Cambiamos "Login" por el nombre del usuario y un botón de salir
-        navLogin.innerHTML = `Hola, ${usuario.nombre} | <span style="cursor:pointer; color:#ff6b6b;" onclick="cerrarSesion()">Salir</span>`;
-        navLogin.href = "#"; // Desactivamos el link a login.html
+        navLogin.innerHTML = `
+            Hola, ${usuario.nombre} | 
+            <span style="cursor:pointer; color:#ff6b6b; margin-right: 10px;" onclick="cerrarSesion()">Salir</span> |
+            <span style="cursor:pointer; color:#dc3545;" onclick="eliminarCuenta()">Borrar Cuenta</span>
+        `;
+        navLogin.href = "#"; 
     }
 }
 
@@ -316,27 +330,105 @@ function cerrarSesion() {
     window.location.reload(); // Recargamos la página
 }
 
+// registro.html
+
+// Función para registrar un nuevo usuario
+async function manejarRegistro(evento) {
+    evento.preventDefault(); 
+
+    const nombre = document.getElementById('reg-nombre').value;
+    const email = document.getElementById('reg-email').value;
+    const password = document.getElementById('reg-password').value;
+    const divMensaje = document.getElementById('mensaje-registro');
+
+    try {
+        const respuesta = await fetch(`${API_URL}/usuarios`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre: nombre, email: email, password: password })
+        });
+
+        const data = await respuesta.json();
+
+        if (respuesta.ok) {
+            divMensaje.innerHTML = `<div class="alert alert-success">${data.mensaje}. Redirigiendo al login...</div>`;
+            setTimeout(() => window.location.href = 'login.html', 2000);
+        } else {
+            divMensaje.innerHTML = `<div class="alert alert-danger">${data.detail}</div>`;
+        }
+    } catch (error) {
+        divMensaje.innerHTML = `<div class="alert alert-danger">Error de conexión con el servidor.</div>`;
+    }
+}
+
+// Función para eliminar la cuenta actual
+async function eliminarCuenta() {
+    if (!confirm("¿Estás seguro de que quieres borrar tu cuenta permanentemente? Esta acción no se puede deshacer.")) {
+        return;
+    }
+
+    const usuarioString = localStorage.getItem('usuarioLogueado');
+    if (!usuarioString) return;
+    
+    const usuario = JSON.parse(usuarioString);
+
+    try {
+        const respuesta = await fetch(`${API_URL}/usuarios/${usuario.id}`, {
+            method: 'DELETE'
+        });
+
+        if (respuesta.ok) {
+            alert("Cuenta eliminada correctamente.");
+            cerrarSesion(); // Esto limpiará el localStorage y recargará la página
+        } else {
+            alert("Error al intentar eliminar la cuenta.");
+        }
+    } catch (error) {
+        alert("Error de conexión con el servidor.");
+    }
+}
+
+
+// --- INICIALIZADOR ÚNICO ---
+// document.addEventListener('DOMContentLoaded', () => {
+    
+//     if (document.getElementById('comics-container')) {
+//         cargarComics();
+//     }
+//     if (document.getElementById('detalle-contenedor')) {
+//         cargarDetalleComic();
+//     }
+//     if (document.getElementById('cuerpo-carrito')) {
+//         cargarCarrito();
+//     }
+    
+//     // NUEVO: Si estamos en login.html, escuchamos al formulario
+//     const formLogin = document.getElementById('form-login');
+//     if (formLogin) {
+//         formLogin.addEventListener('submit', manejarLogin);
+//     }
+
+//     // SIEMPRE ejecutamos estas dos cosas en TODAS las páginas:
+//     actualizarContadorCarrito();
+//     verificarSesion();
+// });
+
 
 // --- INICIALIZADOR ÚNICO ---
 document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('comics-container')) cargarComics();
+    if (document.getElementById('detalle-contenedor')) cargarDetalleComic();
+    if (document.getElementById('cuerpo-carrito')) cargarCarrito();
     
-    if (document.getElementById('comics-container')) {
-        cargarComics();
-    }
-    if (document.getElementById('detalle-contenedor')) {
-        cargarDetalleComic();
-    }
-    if (document.getElementById('cuerpo-carrito')) {
-        cargarCarrito();
+    if (document.getElementById('form-login')) {
+        document.getElementById('form-login').addEventListener('submit', manejarLogin);
     }
     
-    // NUEVO: Si estamos en login.html, escuchamos al formulario
-    const formLogin = document.getElementById('form-login');
-    if (formLogin) {
-        formLogin.addEventListener('submit', manejarLogin);
+    // NUEVO: Escuchar al formulario de registro
+    if (document.getElementById('form-registro')) {
+        document.getElementById('form-registro').addEventListener('submit', manejarRegistro);
     }
 
-    // SIEMPRE ejecutamos estas dos cosas en TODAS las páginas:
     actualizarContadorCarrito();
     verificarSesion();
 });
