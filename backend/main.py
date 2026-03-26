@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import List # Añade esto arriba del todo
 import pymysql
 
 # 1. Inicializar la aplicación
@@ -34,6 +35,15 @@ class CrearUsuario(BaseModel):
     nombre: str
     email: str
     password: str
+
+class ItemCarrito(BaseModel):
+    comic_id: int
+    cantidad: int
+
+class FinalizarCompra(BaseModel):
+    usuario_id: int
+    total: float
+    items: List[ItemCarrito]
 
 # --- ENDPOINTS (RUTAS) ---
 
@@ -110,5 +120,36 @@ def eliminar_usuario(usuario_id: int):
             if cursor.rowcount == 0:
                 raise HTTPException(status_code=404, detail="Usuario no encontrado")
             return {"mensaje": "Cuenta eliminada correctamente"}
+    finally:
+        conexion.close()
+
+# Ruta para procesar la compra
+@app.post("/comprar")
+def finalizar_compra(compra: FinalizarCompra):
+    conexion = get_db_connection()
+    try:
+        with conexion.cursor() as cursor:
+            # 1. Insertar la cabecera de la compra
+            cursor.execute(
+                "INSERT INTO compras (usuario_id, total) VALUES (%s, %s)",
+                (compra.usuario_id, compra.total)
+            )
+            # Obtenemos el ID de la compra que MySQL acaba de generar
+            compra_id = cursor.lastrowid 
+
+            # 2. Insertar cada cómic en los detalles de la compra
+            for item in compra.items:
+                cursor.execute(
+                    "INSERT INTO detalles_compra (compra_id, comic_id, cantidad) VALUES (%s, %s, %s)",
+                    (compra_id, item.comic_id, item.cantidad)
+                )
+            
+            # 3. Guardar todos los cambios definitivamente
+            conexion.commit()
+            
+            return {"mensaje": "Compra realizada con éxito", "compra_id": compra_id}
+    except Exception as e:
+        conexion.rollback() # Si hay un error, deshacemos todo por seguridad
+        raise HTTPException(status_code=500, detail=f"Error al procesar la compra: {str(e)}")
     finally:
         conexion.close()

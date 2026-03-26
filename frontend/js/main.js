@@ -179,16 +179,87 @@ function vaciarCarrito() {
 }
 
 // Función para simular una compra exitosa
-function simularCompra() {
+// function simularCompra() {
+//     let carrito = JSON.parse(localStorage.getItem('carritoComics')) || [];
+//     if (carrito.length === 0) {
+//         alert("El carrito está vacío.");
+//         return;
+//     }
+    
+//     alert("¡Compra realizada con éxito! Gracias por tu pedido.");
+//     localStorage.removeItem('carritoComics'); // Vaciamos el carrito tras comprar
+//     window.location.href = "index.html"; // Redirigimos a la portada
+// }
+
+// Función para enviar la compra real al backend
+async function simularCompra() {
+    // 1. Verificar si hay un usuario logueado
+    const usuarioString = localStorage.getItem('usuarioLogueado');
+    if (!usuarioString) {
+        alert("Debes iniciar sesión para poder finalizar tu compra.");
+        window.location.href = "login.html"; // Lo mandamos a loguearse
+        return;
+    }
+
+    const usuario = JSON.parse(usuarioString);
     let carrito = JSON.parse(localStorage.getItem('carritoComics')) || [];
+    
     if (carrito.length === 0) {
         alert("El carrito está vacío.");
         return;
     }
-    
-    alert("¡Compra realizada con éxito! Gracias por tu pedido.");
-    localStorage.removeItem('carritoComics'); // Vaciamos el carrito tras comprar
-    window.location.href = "index.html"; // Redirigimos a la portada
+
+    // 2. Calcular el total y agrupar los cómics repetidos para sacar la "cantidad"
+    let total = 0;
+    let conteoComics = {}; // Objeto para contar: { id_del_comic: cantidad }
+
+    carrito.forEach(comic => {
+        total += parseFloat(comic.precio);
+        
+        // Si el cómic ya está en el conteo, sumamos 1, si no, lo inicializamos en 1
+        if (conteoComics[comic.id]) {
+            conteoComics[comic.id] += 1;
+        } else {
+            conteoComics[comic.id] = 1;
+        }
+    });
+
+    // 3. Formatear la lista de items como la espera nuestro backend (Pydantic)
+    const itemsParaBackend = Object.keys(conteoComics).map(id => {
+        return {
+            comic_id: parseInt(id),
+            cantidad: conteoComics[id]
+        };
+    });
+
+    // 4. Crear el paquete de datos completo
+    const payload = {
+        usuario_id: usuario.id,
+        total: total,
+        items: itemsParaBackend
+    };
+
+    // 5. Enviar al backend
+    try {
+        const respuesta = await fetch(`${API_URL}/comprar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await respuesta.json();
+
+        if (respuesta.ok) {
+            alert(`¡Éxito! Compra #${data.compra_id} registrada. Gracias por tu pedido.`);
+            localStorage.removeItem('carritoComics'); // Limpiamos el carrito
+            window.location.href = "index.html"; // Volvemos al inicio
+        } else {
+            alert("Hubo un problema con la compra: " + data.detail);
+        }
+    } catch (error) {
+        console.error("Error al procesar la compra:", error);
+        alert("Error de conexión con el servidor.");
+    }
 }
 
 // Función extra: Actualiza el numerito azul en la barra de navegación en TODAS las páginas
