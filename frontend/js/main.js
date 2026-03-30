@@ -1,8 +1,9 @@
 // index.html 
-// La URL base de tu backend en FastAPI
+
+// La URL base backend en FastAPI
 const API_URL = 'http://localhost:8000';
 
-// Función auxiliar para DIBUJAR los cómics en la pantalla
+// Función auxiliar para mostrar los cómics en la pantalla
 function renderizarComics(comics) {
     const contenedor = document.getElementById('comics-container');
     if (!contenedor) return;
@@ -75,48 +76,6 @@ async function buscarComics(evento) {
     }
 }
 
-// async function cargarComics() {
-//     try {
-//         // 1. Llamamos a la API
-//         const respuesta = await fetch(`${API_URL}/comics`);
-//         const comics = await respuesta.json();
-
-//         // 2. Buscamos el contenedor en el HTML
-//         const contenedor = document.getElementById('comics-container');
-
-//         // Verificamos que el contenedor exista (solo existirá en index.html)
-//         if (contenedor) {
-//             contenedor.innerHTML = ''; // Limpiamos el mensaje de "Cargando..."
-
-//             // 3. Recorremos los cómics y creamos el HTML para cada uno
-//             comics.forEach(comic => {
-//                 const tarjetaHtml = `
-//                     <div class="col-md-4 mb-4">
-//                         <div class="card h-100 shadow-sm">
-//                             <img src="${comic.imagen_url || 'img/noImagen.png'}" class="card-img-top" alt="${comic.titulo}" style="height: 350px; object-fit: cover;">
-//                             <div class="card-body d-flex flex-column">
-//                                 <h5 class="card-title">${comic.titulo}</h5>
-//                                 <p class="card-text text-truncate">${comic.descripcion}</p>
-//                                 <h3 class="text-primary mt-auto">$${comic.precio}</h3>
-//                                 <a href="detalle.html?id=${comic.id}" class="btn btn-dark w-100 mt-3">Ver Detalles</a>
-//                             </div>
-//                         </div>
-//                     </div>
-//                 `;
-//                 // Añadimos la tarjeta al contenedor
-//                 contenedor.innerHTML += tarjetaHtml;
-//             });
-//         }
-//     } catch (error) {
-//         console.error("Error al conectar con la API:", error);
-//         document.getElementById('comics-container').innerHTML = '<p class="text-danger text-center">Error al cargar el catálogo.</p>';
-//     }
-// }
-
-// Ejecutar la función en cuanto la página web cargue
-// document.addEventListener('DOMContentLoaded', cargarComics);
-
-
 // detalle.html
 
 // Función para cargar los detalles de un solo cómic
@@ -176,13 +135,7 @@ function agregarAlCarrito(comic) {
     actualizarContadorCarrito();
 }
 
-// Ejecutamos la función de detalles cuando cargue la página
-// document.addEventListener('DOMContentLoaded', cargarDetalleComic);
-
-
 // carrito.html
-
-// --- CÓDIGO NUEVO A AÑADIR AL FINAL DE main.js ---
 
 // Función para mostrar los productos en la página del carrito
 function cargarCarrito() {
@@ -251,22 +204,9 @@ function vaciarCarrito() {
     }
 }
 
-// Función para simular una compra exitosa
-// function simularCompra() {
-//     let carrito = JSON.parse(localStorage.getItem('carritoComics')) || [];
-//     if (carrito.length === 0) {
-//         alert("El carrito está vacío.");
-//         return;
-//     }
-
-//     alert("¡Compra realizada con éxito! Gracias por tu pedido.");
-//     localStorage.removeItem('carritoComics'); // Vaciamos el carrito tras comprar
-//     window.location.href = "index.html"; // Redirigimos a la portada
-// }
-
 // Función para enviar la compra real al backend
 async function simularCompra() {
-    // 1. Verificar si hay un usuario logueado
+    // Verificar si hay un usuario logueado
     const usuarioString = localStorage.getItem('usuarioLogueado');
     if (!usuarioString) {
         alert("Debes iniciar sesión para poder finalizar tu compra.");
@@ -282,7 +222,7 @@ async function simularCompra() {
         return;
     }
 
-    // 2. Calcular el total y agrupar los cómics repetidos para sacar la "cantidad"
+    // Calcular el total y agrupar los cómics repetidos para sacar la "cantidad"
     let total = 0;
     let conteoComics = {}; // Objeto para contar: { id_del_comic: cantidad }
 
@@ -297,7 +237,7 @@ async function simularCompra() {
         }
     });
 
-    // 3. Formatear la lista de items como la espera nuestro backend (Pydantic)
+    // Formatear la lista de items como la espera nuestro backend (Pydantic)
     const itemsParaBackend = Object.keys(conteoComics).map(id => {
         return {
             comic_id: parseInt(id),
@@ -305,14 +245,14 @@ async function simularCompra() {
         };
     });
 
-    // 4. Crear el paquete de datos completo
+    // Crear el paquete de datos completo
     const payload = {
         usuario_id: usuario.id,
         total: total,
         items: itemsParaBackend
     };
 
-    // 5. Enviar al backend
+    // Enviar al backend
     try {
         const respuesta = await fetch(`${API_URL}/comprar`, {
             method: 'POST',
@@ -335,7 +275,7 @@ async function simularCompra() {
     }
 }
 
-// Función extra: Actualiza el numerito azul en la barra de navegación en TODAS las páginas
+// Actualiza número azul en la barra de navegación en todas las páginas
 function actualizarContadorCarrito() {
     const contador = document.getElementById('contador-carrito');
     if (contador) {
@@ -343,58 +283,6 @@ function actualizarContadorCarrito() {
         contador.textContent = carrito.length;
     }
 }
-
-// --- MODIFICACIONES A LOS EVENT LISTENERS EXISTENTES ---
-
-// Asegurarnos de que el carrito y el contador se carguen al iniciar cualquier página
-// document.addEventListener('DOMContentLoaded', () => {
-//     // Estas funciones ya las tenías, las mantenemos:
-//     if (typeof cargarComics === 'function') cargarComics();
-//     if (typeof cargarDetalleComic === 'function') cargarDetalleComic();
-
-//     // Añadimos estas nuevas:
-//     cargarCarrito();
-//     actualizarContadorCarrito();
-// });
-
-// Busca la función agregarAlCarrito() que creamos en el paso anterior y modifícala 
-// LIGERAMENTE para que llame a actualizarContadorCarrito() al final:
-/*
-function agregarAlCarrito(comic) {
-    let carrito = JSON.parse(localStorage.getItem('carritoComics')) || [];
-    carrito.push(comic);
-    localStorage.setItem('carritoComics', JSON.stringify(carrito));
-    alert(`¡"${comic.titulo}" añadido al carrito!`);
-    
-    // --> ¡AÑADE ESTA LÍNEA AQUÍ! <--
-    actualizarContadorCarrito(); 
-}
-*/
-
-// --- INICIALIZADOR ÚNICO ---
-// Ejecutar cuando la página web haya cargado completamente
-// document.addEventListener('DOMContentLoaded', () => {
-
-//     // 1. Si estamos en index.html (existe el contenedor de cómics)
-//     if (document.getElementById('comics-container')) {
-//         cargarComics();
-//     }
-
-//     // 2. Si estamos en detalle.html (existe el contenedor del detalle)
-//     if (document.getElementById('detalle-contenedor')) {
-//         cargarDetalleComic();
-//     }
-
-//     // 3. Si estamos en carrito.html (existe la tabla del carrito)
-//     if (document.getElementById('cuerpo-carrito')) {
-//         cargarCarrito();
-//     }
-
-//     // 4. El contador de la barra de navegación está en todas las páginas, 
-//     // así que lo actualizamos siempre.
-//     actualizarContadorCarrito();
-// });
-
 
 // login.html
 
@@ -440,34 +328,6 @@ async function manejarLogin(evento) {
         divMensaje.innerHTML = `<div class="alert alert-danger">Error al conectar con el servidor.</div>`;
     }
 }
-
-// Función para cambiar el menú si el usuario ya inició sesión
-// function verificarSesion() {
-//     const usuarioString = localStorage.getItem('usuarioLogueado');
-//     const navLogin = document.getElementById('nav-login'); 
-
-//     if (usuarioString && navLogin) {
-//         const usuario = JSON.parse(usuarioString);
-//         // Cambiamos "Login" por el nombre del usuario y un botón de salir
-//         navLogin.innerHTML = `Hola, ${usuario.nombre} | <span style="cursor:pointer; color:#ff6b6b;" onclick="cerrarSesion()">Salir</span>`;
-//         navLogin.href = "#"; // Desactivamos el link a login.html
-//     }
-// }
-
-// function verificarSesion() {
-//     const usuarioString = localStorage.getItem('usuarioLogueado');
-//     const navLogin = document.getElementById('nav-login');
-
-//     if (usuarioString && navLogin) {
-//         const usuario = JSON.parse(usuarioString);
-//         navLogin.innerHTML = `
-//             Hola, ${usuario.nombre} | 
-//             <span style="cursor:pointer; color:#ff6b6b; margin-right: 10px;" onclick="cerrarSesion()">Salir</span> |
-//             <span style="cursor:pointer; color:#dc3545;" onclick="eliminarCuenta()">Borrar Cuenta</span>
-//         `;
-//         navLogin.href = "#";
-//     }
-// }
 
 // Función para cambiar el menú si el usuario ya inició sesión
 function verificarSesion() {
@@ -552,6 +412,8 @@ async function eliminarCuenta() {
     }
 }
 
+// mis-compras.html
+
 // Función para obtener y mostrar el historial de compras del usuario
 async function cargarHistorialCompras() {
     const cuerpoHistorial = document.getElementById('cuerpo-historial');
@@ -598,62 +460,14 @@ async function cargarHistorialCompras() {
 }
 
 
-// --- INICIALIZADOR ÚNICO ---
-// document.addEventListener('DOMContentLoaded', () => {
-
-//     if (document.getElementById('comics-container')) {
-//         cargarComics();
-//     }
-//     if (document.getElementById('detalle-contenedor')) {
-//         cargarDetalleComic();
-//     }
-//     if (document.getElementById('cuerpo-carrito')) {
-//         cargarCarrito();
-//     }
-
-//     // NUEVO: Si estamos en login.html, escuchamos al formulario
-//     const formLogin = document.getElementById('form-login');
-//     if (formLogin) {
-//         formLogin.addEventListener('submit', manejarLogin);
-//     }
-
-//     // SIEMPRE ejecutamos estas dos cosas en TODAS las páginas:
-//     actualizarContadorCarrito();
-//     verificarSesion();
-// });
-
-
-// --- INICIALIZADOR ÚNICO ---
-// document.addEventListener('DOMContentLoaded', () => {
-//     if (document.getElementById('comics-container')) cargarComics();
-//     if (document.getElementById('detalle-contenedor')) cargarDetalleComic();
-//     if (document.getElementById('cuerpo-carrito')) cargarCarrito();
-
-//     if (document.getElementById('form-login')) {
-//         document.getElementById('form-login').addEventListener('submit', manejarLogin);
-//     }
-
-//     // NUEVO: Escuchar al formulario de registro
-//     if (document.getElementById('form-registro')) {
-//         document.getElementById('form-registro').addEventListener('submit', manejarRegistro);
-//     }
-
-//     // NUEVO: Escuchar al formulario de búsqueda en la portada
-//     const formBusqueda = document.getElementById('form-busqueda');
-//     if (formBusqueda) {
-//         formBusqueda.addEventListener('submit', buscarComics);
-//     }
-
-//     actualizarContadorCarrito();
-//     verificarSesion();
-// });
+// --- INICIALIZADOR ---
 
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('comics-container')) cargarComics();
     if (document.getElementById('detalle-contenedor')) cargarDetalleComic();
     if (document.getElementById('cuerpo-carrito')) cargarCarrito();
     
-    // NUEVO: Ejecutar historial si estamos en mis-compras.html
+    //Ejecutar historial si estamos en mis-compras.html
     if (document.getElementById('cuerpo-historial')) cargarHistorialCompras();
     
     if (document.getElementById('form-login')) {
@@ -663,7 +477,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('form-registro').addEventListener('submit', manejarRegistro);
     }
 
-    // NUEVO: Escuchar al formulario de búsqueda
+    // Escuchar al formulario de búsqueda
     const formBusqueda = document.getElementById('form-busqueda');
     if (formBusqueda) {
         formBusqueda.addEventListener('submit', buscarComics);
