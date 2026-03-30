@@ -453,18 +453,38 @@ async function manejarLogin(evento) {
 //         navLogin.href = "#"; // Desactivamos el link a login.html
 //     }
 // }
+
+// function verificarSesion() {
+//     const usuarioString = localStorage.getItem('usuarioLogueado');
+//     const navLogin = document.getElementById('nav-login');
+
+//     if (usuarioString && navLogin) {
+//         const usuario = JSON.parse(usuarioString);
+//         navLogin.innerHTML = `
+//             Hola, ${usuario.nombre} | 
+//             <span style="cursor:pointer; color:#ff6b6b; margin-right: 10px;" onclick="cerrarSesion()">Salir</span> |
+//             <span style="cursor:pointer; color:#dc3545;" onclick="eliminarCuenta()">Borrar Cuenta</span>
+//         `;
+//         navLogin.href = "#";
+//     }
+// }
+
+// Función para cambiar el menú si el usuario ya inició sesión
 function verificarSesion() {
     const usuarioString = localStorage.getItem('usuarioLogueado');
-    const navLogin = document.getElementById('nav-login');
+    const navLogin = document.getElementById('nav-login'); 
 
     if (usuarioString && navLogin) {
         const usuario = JSON.parse(usuarioString);
+        
+        // Añadimos el enlace "Mis Pedidos" al menú
         navLogin.innerHTML = `
-            Hola, ${usuario.nombre} | 
-            <span style="cursor:pointer; color:#ff6b6b; margin-right: 10px;" onclick="cerrarSesion()">Salir</span> |
+            <a href="mis-compras.html" class="text-light text-decoration-none me-3 fw-bold">Mis Pedidos</a>
+            <span class="text-white-50">Hola, ${usuario.nombre}</span> | 
+            <span style="cursor:pointer; color:#ff6b6b; margin-left: 5px; margin-right: 10px;" onclick="cerrarSesion()">Salir</span> |
             <span style="cursor:pointer; color:#dc3545;" onclick="eliminarCuenta()">Borrar Cuenta</span>
         `;
-        navLogin.href = "#";
+        navLogin.href = "#"; // Desactivamos el link principal para que no lleve al login
     }
 }
 
@@ -532,7 +552,50 @@ async function eliminarCuenta() {
     }
 }
 
+// Función para obtener y mostrar el historial de compras del usuario
+async function cargarHistorialCompras() {
+    const cuerpoHistorial = document.getElementById('cuerpo-historial');
+    if (!cuerpoHistorial) return;
 
+    // Verificamos quién está logueado
+    const usuarioString = localStorage.getItem('usuarioLogueado');
+    if (!usuarioString) {
+        // Si alguien intenta entrar a mis-compras.html sin loguearse, lo echamos al login
+        window.location.href = 'login.html';
+        return;
+    }
+
+    const usuario = JSON.parse(usuarioString);
+
+    try {
+        // Hacemos la petición a la API con el ID del usuario
+        const respuesta = await fetch(`${API_URL}/usuarios/${usuario.id}/compras`);
+        const compras = await respuesta.json();
+
+        cuerpoHistorial.innerHTML = ''; // Limpiamos el mensaje de "Cargando..."
+
+        if (compras.length === 0) {
+            cuerpoHistorial.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-4">Aún no has realizado ninguna compra. ¡Anímate!</td></tr>';
+            return;
+        }
+
+        // Recorremos las compras y creamos las filas
+        compras.forEach(compra => {
+            const fila = `
+                <tr>
+                    <td><strong>#${compra.id}</strong></td>
+                    <td>${compra.fecha}</td>
+                    <td class="text-success fw-bold">$${parseFloat(compra.total).toFixed(2)}</td>
+                </tr>
+            `;
+            cuerpoHistorial.innerHTML += fila;
+        });
+
+    } catch (error) {
+        console.error("Error al cargar el historial:", error);
+        cuerpoHistorial.innerHTML = '<tr><td colspan="3" class="text-center text-danger py-4">Error al cargar el historial de pedidos.</td></tr>';
+    }
+}
 
 
 // --- INICIALIZADOR ÚNICO ---
@@ -561,21 +624,46 @@ async function eliminarCuenta() {
 
 
 // --- INICIALIZADOR ÚNICO ---
+// document.addEventListener('DOMContentLoaded', () => {
+//     if (document.getElementById('comics-container')) cargarComics();
+//     if (document.getElementById('detalle-contenedor')) cargarDetalleComic();
+//     if (document.getElementById('cuerpo-carrito')) cargarCarrito();
+
+//     if (document.getElementById('form-login')) {
+//         document.getElementById('form-login').addEventListener('submit', manejarLogin);
+//     }
+
+//     // NUEVO: Escuchar al formulario de registro
+//     if (document.getElementById('form-registro')) {
+//         document.getElementById('form-registro').addEventListener('submit', manejarRegistro);
+//     }
+
+//     // NUEVO: Escuchar al formulario de búsqueda en la portada
+//     const formBusqueda = document.getElementById('form-busqueda');
+//     if (formBusqueda) {
+//         formBusqueda.addEventListener('submit', buscarComics);
+//     }
+
+//     actualizarContadorCarrito();
+//     verificarSesion();
+// });
+
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('comics-container')) cargarComics();
     if (document.getElementById('detalle-contenedor')) cargarDetalleComic();
     if (document.getElementById('cuerpo-carrito')) cargarCarrito();
-
+    
+    // NUEVO: Ejecutar historial si estamos en mis-compras.html
+    if (document.getElementById('cuerpo-historial')) cargarHistorialCompras();
+    
     if (document.getElementById('form-login')) {
         document.getElementById('form-login').addEventListener('submit', manejarLogin);
     }
-
-    // NUEVO: Escuchar al formulario de registro
     if (document.getElementById('form-registro')) {
         document.getElementById('form-registro').addEventListener('submit', manejarRegistro);
     }
 
-    // NUEVO: Escuchar al formulario de búsqueda en la portada
+    // NUEVO: Escuchar al formulario de búsqueda
     const formBusqueda = document.getElementById('form-busqueda');
     if (formBusqueda) {
         formBusqueda.addEventListener('submit', buscarComics);
