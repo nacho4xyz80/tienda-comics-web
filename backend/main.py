@@ -153,3 +153,44 @@ def finalizar_compra(compra: FinalizarCompra):
         raise HTTPException(status_code=500, detail=f"Error al procesar la compra: {str(e)}")
     finally:
         conexion.close()
+
+
+# Buscador de cómics (Por título)
+@app.get("/comics/buscar/")
+def buscar_comics(q: str):
+    conexion = get_db_connection()
+    try:
+        with conexion.cursor() as cursor:
+            # Usamos LIKE y % para buscar coincidencias parciales.
+            # Si q="bat", encontrará "Batman", "Batgirl", etc.
+            consulta = "SELECT * FROM comics WHERE titulo LIKE %s"
+            cursor.execute(consulta, (f"%{q}%",))
+            comics = cursor.fetchall()
+            return comics
+    finally:
+        conexion.close()
+
+# Historial de compras de un usuario
+@app.get("/usuarios/{usuario_id}/compras")
+def obtener_historial_compras(usuario_id: int):
+    conexion = get_db_connection()
+    try:
+        with conexion.cursor() as cursor:
+            # Traemos las compras ordenadas de la más reciente a la más antigua
+            consulta = """
+                SELECT id, total, fecha 
+                FROM compras 
+                WHERE usuario_id = %s 
+                ORDER BY fecha DESC
+            """
+            cursor.execute(consulta, (usuario_id,))
+            compras = cursor.fetchall()
+            
+            # Formateamos un poco la fecha para que el JSON sea más amigable (opcional pero recomendado)
+            for compra in compras:
+                if 'fecha' in compra and compra['fecha']:
+                    compra['fecha'] = compra['fecha'].strftime("%Y-%m-%d %H:%M:%S")
+                    
+            return compras
+    finally:
+        conexion.close()
