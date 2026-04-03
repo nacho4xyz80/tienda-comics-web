@@ -9,8 +9,6 @@ class Comic(BaseModel):
     precio: float
     imagen_url: Optional[str] = None
 
-# --- AÑADIR AL FINAL DE core/entities.py ---
-
 # Entidades de Usuario
 class Usuario(BaseModel):
     id: Optional[int] = None

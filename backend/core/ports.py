@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from core.entities import Comic
+from core.entities import Comic, Usuario, CrearUsuario, FinalizarCompra, HistorialCompra
 
 class ComicRepository(ABC):
     
@@ -15,8 +15,6 @@ class ComicRepository(ABC):
     @abstractmethod
     def buscar_por_titulo(self, titulo: str) -> List[Comic]:
         pass
-
-from core.entities import Usuario, CrearUsuario, FinalizarCompra, HistorialCompra
 
 class UsuarioRepository(ABC):
     @abstractmethod

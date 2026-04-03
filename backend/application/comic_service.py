@@ -1,5 +1,4 @@
 from core.ports import ComicRepository
-from core.entities import Comic
 
 class ComicService:
     # Inyectamos la dependencia a través del constructor
