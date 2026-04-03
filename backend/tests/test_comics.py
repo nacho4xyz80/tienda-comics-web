@@ -48,3 +48,20 @@ def test_obtener_comic_por_id_inexistente_lanza_error():
     with pytest.raises(Exception) as excinfo:
         servicio.obtener_detalle(99)
     assert "Cómic no encontrado" in str(excinfo.value)
+
+def test_buscar_comics_por_titulo_encuentra_coincidencia():
+    repo_falso = MockComicRepository()
+    servicio = ComicService(repo_falso)
+    
+    # Buscamos "Bat", debería devolvernos "Batman"
+    resultados = servicio.buscar_comics("Bat")
+    assert len(resultados) == 1
+    assert resultados[0].titulo == "Batman"
+
+def test_buscar_comics_por_titulo_no_encuentra_nada():
+    repo_falso = MockComicRepository()
+    servicio = ComicService(repo_falso)
+    
+    # Buscamos algo que no existe
+    resultados = servicio.buscar_comics("Superman")
+    assert len(resultados) == 0
