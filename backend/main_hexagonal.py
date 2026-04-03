@@ -20,7 +20,3 @@ app.add_middleware(
 
 # Conectamos nuestras rutas a la aplicación principal
 app.include_router(comics_router)
-
-# Nota: Para mantener el login y las compras funcionando en este nuevo archivo, 
-# más adelante podrías crear un `user_service` y un `compras_service` siguiendo 
-# el mismo patrón exacto que hicimos con los cómics, y luego usar app.include_router() aquí.
