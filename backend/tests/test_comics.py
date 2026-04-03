@@ -23,11 +23,9 @@ class MockComicRepository(ComicRepository):
     def buscar_por_titulo(self, titulo: str):
         return [c for c in self.comics if titulo.lower() in c.titulo.lower()]
 
-# --- NUESTROS TESTS ---
-
 def test_obtener_todos_los_comics():
     repo_falso = MockComicRepository()
-    servicio = ComicService(repo_falso) # Inyección de dependencias!
+    servicio = ComicService(repo_falso) # Inyección de dependencias
     
     resultados = servicio.obtener_catalogo()
     assert len(resultados) == 2

@@ -3,7 +3,6 @@ from core.entities import Usuario, CrearUsuario, LoginUsuario
 from application.usuario_service import UsuarioService
 from core.ports import UsuarioRepository
 
-# 1. Creamos el Repositorio Falso (Mock)
 class MockUsuarioRepository(UsuarioRepository):
     def __init__(self):
         # Base de datos en memoria inicial
@@ -31,7 +30,6 @@ class MockUsuarioRepository(UsuarioRepository):
         self.usuarios = [u for u in self.usuarios if u.id != usuario_id]
         return len(self.usuarios) < longitud_inicial
 
-# 2. Nuestros Tests
 def test_login_exitoso():
     servicio = UsuarioService(MockUsuarioRepository())
     credenciales = LoginUsuario(email="admin@test.com", password="123")

@@ -9,10 +9,9 @@ from infrastructure.mysql_adapters import MySQLComicRepository, MySQLUsuarioRepo
 # Creamos un "Router" que luego conectaremos a la app principal
 router = APIRouter()
 
-# Función para inyectar dependencias limpiamente
+# Función para inyectar dependencias
 def get_comic_service():
-    # Aquí es donde decidimos usar MySQL. 
-    # Si mañana usamos MongoDB, solo cambiamos esta línea.
+    # Si cambiamos bd, solo cambiamos esta línea, en este caso MySQL.
     repositorio = MySQLComicRepository()
     return ComicService(repositorio)
 
