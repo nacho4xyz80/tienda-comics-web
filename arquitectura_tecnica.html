@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentación Técnica: Arquitectura Tienda Cómics Web</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary: #475569;
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --border-radius: 0.75rem;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #3b82f6;
+                --primary-hover: #60a5fa;
+                --secondary: #94a3b8;
+                --bg: #0f172a;
+                --bg-card: #1e293b;
+                --text-main: #f8fafc;
+                --text-muted: #cbd5e1;
+                --border: #334155;
+                --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+            }
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        section {
+            background-color: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            display: flex;
+            align-items: center;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.75rem;
+            margin-top: 0;
+            font-size: 1.75rem;
+        }
+
+        h3 {
+            color: var(--text-main);
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        p, li {
+            color: var(--text-main);
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+        }
+
+        ul {
+            padding-left: 1.5rem;
+        }
+
+        .keyword {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .code-inline {
+            background-color: rgba(125, 125, 125, 0.15);
+            color: var(--text-main);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+
+        .mermaid-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: auto;
+            background-color: var(--bg);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            border: 1px dashed var(--border);
+            margin: 2rem 0;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        th {
+            background-color: rgba(125, 125, 125, 0.05);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .alert {
+            padding: 1rem;
+            background-color: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--primary);
+            border-radius: 0 0.5rem 0.5rem 0;
+            margin: 1.5rem 0;
+        }
+
+        /* ESTILOS PARA DIAGRAMA NATIVO HTML/CSS */
+        .arch-diagram {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+            text-align: center;
+        }
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+            text-align: left;
+        }
+        @media (min-width: 992px) {
+            .arch-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .layer-box {
+            background: var(--bg);
+            border: 2px dashed rgba(37, 99, 235, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            position: relative;
+        }
+        .layer-box.core {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.02);
+        }
+        .layer-box.infra {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.02);
+        }
+        .layer-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 2rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .layer-box.core .layer-title { color: #10b981; }
+        .layer-box.infra .layer-title { color: #f59e0b; }
+        
+        .class-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .class-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        .class-header {
+            background: rgba(37, 99, 235, 0.05);
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            border-radius: 8px 8px 0 0;
+        }
+        .class-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin: 0;
+            font-family: monospace;
+        }
+        .class-meta {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+        .class-methods {
+            padding: 1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+        .method {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.6rem;
+        }
+        .method:last-child { margin-bottom: 0; }
+        .method::before {
+            content: '+';
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        .method.private::before {
+            content: '-';
+            color: #ef4444;
+        }
+        .flow-arrow {
+            text-align: center;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 1rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .flow-arrow::after {
+            content: '↓';
+            font-size: 1.5rem;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Documentación Técnica</h1>
+            <div class="subtitle">Análisis Arquitectónico de Tienda Cómics Web</div>
+        </header>
+
+        <section id="resumen">
+            <h2>1. Resumen Ejecutivo</h2>
+            <p>
+                El presente documento analiza la arquitectura de software de la aplicación <strong>Tienda Cómics Web</strong>. 
+                El sistema ha sido diseñado bajo el paradigma de la <span class="keyword">Arquitectura Hexagonal (Ports and Adapters)</span>, la cual también se alinea estrictamente con los principios de <em>Clean Architecture</em>.
+            </p>
+            <p>
+                Este enfoque busca aislar la lógica de negocio central (reglas del dominio) de los detalles de implementación técnica, tales como la base de datos (MySQL), los frameworks web (FastAPI) y la interfaz de usuario (Front-end). Se logra estructurando el proyecto en tres capas concéntricas:
+            </p>
+            <ul>
+                <li><span class="keyword">Core (Dominio):</span> Contiene las entidades puras y los puertos (interfaces) que definen los contratos para interactuar con repositorios externos.</li>
+                <li><span class="keyword">Aplicación:</span> Contiene los Casos de Uso (Servicios) que orquestan las operaciones de negocio, utilizando las entidades y dependiendo exclusivamente de los puertos definidos en el core.</li>
+                <li><span class="keyword">Infraestructura (Adaptadores):</span> Implementa detalles externos. Contiene los Driver Adapters (API REST con FastAPI) y Driven Adapters (Interacción con base de datos MySQL).</li>
+            </ul>
+        </section>
+
+        <section id="diagrama">
+            <h2>2. Diagrama de Arquitectura y Clases</h2>
+            <p>Se ha implementado una representación visual nativa y responsiva de las Entidades, Servicios y Controladores clave mapeados en el diseño Hexagonal.</p>
+            
+            <div class="arch-diagram">
+                
+                <div class="flow-arrow" style="font-size: 1.1rem; color: var(--primary);">
+                    Front-end (main.js / UI) invoca Rutas API
+                </div>
+
+                <div class="arch-grid">
+                    
+                    <!-- COLUMNA 1: INFRAESTRUCTURA (ENTRADA Y SALIDA) -->
+                    <div class="layer-box infra">
+                        <div class="layer-title">Infraestructura (Adaptadores)</div>
+                        
+                        <div class="class-box">
+                            <div class="class-header">
+                                <span class="class-meta">&lt;&lt;Driver Adapter / FastApi&gt;&gt;</span>
+                                <h4 class="class-name">api_routes</h4>
+                            </div>
+                            <div class="class-methods">
+                                <div class="method">obtener_comics()</div>
+                                <div class="method">login()</div>
+                                <div class="method">registrar_usuario()</div>
+                                <div class="method">finalizar_compra()</div>
+                            </div>
+                        </div>
+
+                        <div class="flow-arrow">Delegación (Inyección de Dependencias) a Capa de Casos de Uso</div>
+                        
+                        <div class="class-box" style="margin-top: 2rem;">
+                            <div class="class-header">
+                                <span class="class-meta">&lt;&lt;Driven Adapter / MySQL&gt;&gt;</span>
+                                <h4 class="class-name">MySQL...Repository</h4>
+                            </div>
+                            <div class="class-methods" style="font-size: 0.85rem;">
+                                <div class="method">MySQLComicRepository</div>
+                                <div class="method">MySQLUsuarioRepository</div>
+                                <div class="method">MySQLCompraRepository</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA 2: APLICACIÓN (SERVICIOS) -->
+                    <div class="layer-box">
+                        <div class="layer-title">Aplicación (Casos de Uso)</div>
+                        
+                        <div class="class-box">
+                            <div class="class-header">
+                                <span class="class-meta">&lt;&lt;Application Service&gt;&gt;</span>
+                                <h4 class="class-name">ComicService</h4>
+                            </div>
+                            <div class="class-methods">
+                                <div class="method private">repository: ComicRepo</div>
+                                <div class="method">obtener_catalogo()</div>
+                                <div class="method">buscar_comics(q)</div>
+                                <div class="method">obtener_detalle(id)</div>
+                            </div>
+                        </div>
+
+                        <div class="class-box">
+                            <div class="class-header">
+                                <span class="class-meta">&lt;&lt;Application Service&gt;&gt;</span>
+                                <h4 class="class-name">UsuarioService</h4>
+                            </div>
+                            <div class="class-methods">
+                                <div class="method private">repository: UsuarioRepo</div>
+                                <div class="method">login(credenciales)</div>
+                                <div class="method">registrar(usuario)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="class-box">
+                            <div class="class-header">
+                                <span class="class-meta">&lt;&lt;Application Service&gt;&gt;</span>
+                                <h4 class="class-name">CompraService</h4>
+                            </div>
+                            <div class="class-methods">
+                                <div class="method private">repository: CompraRepo</div>
+                                <div class="method">procesar_compra(compra)</div>
+                                <div class="method">obtener_historial(id)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA 3: CORE (DOMINIO) -->
+                    <div class="layer-box core">
+                        <div class="layer-title">Core (Puertos y Entidades)</div>
+                        
+                        <div class="class-box">
+                            <div class="class-header" style="background: rgba(16, 185, 129, 0.1);">
+                                <span class="class-meta">&lt;&lt;Interface / Port&gt;&gt;</span>
+                                <h4 class="class-name" style="color: #059669;">Interfaces Repository</h4>
+                            </div>
+                            <div class="class-methods" style="font-size: 0.85rem;">
+                                <div class="method">ComicRepository(...)</div>
+                                <div class="method">UsuarioRepository(...)</div>
+                                <div class="method">CompraRepository(...)</div>
+                            </div>
+                        </div>
+
+                        <div class="flow-arrow">Implementación y Modelado</div>
+
+                        <div class="class-box">
+                            <div class="class-header" style="background: rgba(16, 185, 129, 0.1);">
+                                <span class="class-meta">&lt;&lt;Domain Entity&gt;&gt;</span>
+                                <h4 class="class-name" style="color: #059669;">Entidades Pydantic</h4>
+                            </div>
+                            <div class="class-methods" style="font-size: 0.85rem;">
+                                <div class="method">class Comic</div>
+                                <div class="method">class Usuario</div>
+                                <div class="method">class FinalizarCompra</div>
+                                <div class="method">class ItemCarrito</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="justificacion">
+            <h2>3. Justificación de Refactorización Técnica</h2>
+            <div class="grid-2">
+                <div>
+                    <h3>El Problema Monolítico Tradicional</h3>
+                    <p>En sistemas fuertemente acoplados (Spaghetti Code), los controladores o <em>routers</em> realizan múltiples tareas simultáneas: validación HTTP, ejecución de consultas SQL y aplicación de reglas de negocio. Esto conlleva a:</p>
+                    <ul>
+                        <li>Código rígido y propenso a errores ante cambios estructurales.</li>
+                        <li>Extrema dificultad para realizar Pruebas Unitarias aisladas sin una base de datos activa.</li>
+                        <li>Falta de claridad en las responsabilidades.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>El Beneficio Hexagonal</h3>
+                    <p>Al refactorizar e introducir <span class="keyword">Puertos y Adaptadores</span> obtenemos las siguientes garantías técnicas:</p>
+                    <ul>
+                        <li><strong>Alta Modularidad y Bajo Acoplamiento:</strong> Los detalles técnicos periféricos pueden reemplazarse. Reemplazar Base de Datos (ej. MySQL por MongoDB) o Framework HTTP (ej. Flask por FastAPI) solo implica reescribir la <em>Infraestructura</em>.</li>
+                        <li><strong>Testabilidad Elevada (Inyección de Dependencias):</strong> Al depender de Clases Abstractas (<span class="code-inline">core.ports</span>), es trivial enviar repositorios <em>Mock</em> en los Tests Unitarios del Servicio de Aplicación, ignorando por completo la Base de Datos.</li>
+                        <li><strong>Encapsulamiento del Dominio:</strong> La lógica de negocio fundamental de "Cómo comprar" y "Cómo buscar" es inmutable a los agentes externos.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="componentes">
+            <h2>4. Detalle de Componentes y Responsabilidades</h2>
+            
+            <div class="alert">
+                <strong>Nota:</strong> Esta sección mapea rigurosamente el código actual, destacando los límites lógicos establecidos tanto para el Front-end como para el Back-end.
+            </div>
+
+            <h3>4.1 Módulos del Front-end (Cliente)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Archivo</th>
+                        <th>Responsabilidad Principal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="code-inline">HTML/CSS</span> (index, carrito, detalle...)</td>
+                        <td>Definición estructural y semántica de la Interfaz de Usuario. Presentación gráfica responsive para catálogos, registro y carritos interactivos.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-inline">js/main.js</span></td>
+                        <td>Motor lógico del cliente. Gestiona el ciclo de vida del estado de autenticación (JWT o sesiones locales), el estado efímero del Carrito y la orquestación asíncrona de llamadas HTTP al Back-end con <span class="code-inline">fetch</span>.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.2 Módulos del Back-end (Servidor FastAPI)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Directorio</th>
+                        <th>Componentes Clave y Rol</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="code-inline">core/</span></td>
+                        <td>
+                            <strong>Entidades</strong> (<span class="code-inline">entities.py</span>): DTOs puramente descriptivos usando Pydantic (<span class="code-inline">Comic</span>, <span class="code-inline">Usuario</span>).<br>
+                            <strong>Puertos</strong> (<span class="code-inline">ports.py</span>): Contratos formales usando <span class="code-inline">abc.ABCMeta</span> (<span class="code-inline">ComicRepository</span>, <span class="code-inline">CompraRepository</span>).
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-inline">application/</span></td>
+                        <td>
+                            <strong>Servicios de Casos de Uso</strong> (<span class="code-inline">compra_service.py</span>, <span class="code-inline">comic_service.py</span>): Evalúan reglas de negocio (ej. "Lanzar error si el carrito está vacío al finalizar la compra"). Dirigen el tráfico de datos entre el Cliente y el Repositorio de base de datos.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-inline">infrastructure/</span></td>
+                        <td>
+                            <strong>Adaptadores de Base de Datos</strong> (<span class="code-inline">mysql_adapters.py</span>): Ejecutan queries SQL con DB-API 2.0 y mapean el <em>RowSet</em> a Entidades.<br>
+                            <strong>Rutas API</strong> (<span class="code-inline">api_routes.py</span>): Conecta HTTP (FastAPI) al servicio, atrapa Excepciones y las formatea como Códigos HTTP 4xx/5xx limpios e Inyecta las Dependencias (<span class="code-inline">Depends</span>).
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+    </div>
+</body>
+</html>
