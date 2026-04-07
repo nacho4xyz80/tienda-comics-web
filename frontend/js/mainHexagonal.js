@@ -2,8 +2,8 @@
 import { ApiAdapter } from './infrastructure/api.js';
 import { StorageAdapter } from './infrastructure/storage.js';
 import { ComicService } from './application/comicService.js';
-import { AuthService } from './application/authService.js';
-import { CartService } from './application/cartService.js';
+import { AuthService } from './application/usuarioService.js';
+import { CartService } from './application/compraService.js';
 import { DomManager } from './ui/domManager.js';
 
 // 2. Instanciación e Inyección (Construimos el Hexágono)

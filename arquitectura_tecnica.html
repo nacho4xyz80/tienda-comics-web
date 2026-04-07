@@ -303,28 +303,26 @@
             <h2>1. Resumen Ejecutivo</h2>
             <p>
                 El presente documento analiza la arquitectura de software de la aplicación <strong>Tienda Cómics Web</strong>. 
-                El sistema ha sido diseñado bajo el paradigma de la <span class="keyword">Arquitectura Hexagonal (Ports and Adapters)</span>, la cual también se alinea estrictamente con los principios de <em>Clean Architecture</em>.
+                El sistema ha sido diseñado de manera "End-to-End" (Tanto en el servidor como en el cliente) bajo los preceptos de la <span class="keyword">Arquitectura Hexagonal (Ports and Adapters)</span> e Inyección de Dependencias.
             </p>
             <p>
-                Este enfoque busca aislar la lógica de negocio central (reglas del dominio) de los detalles de implementación técnica, tales como la base de datos (MySQL), los frameworks web (FastAPI) y la interfaz de usuario (Front-end). Se logra estructurando el proyecto en tres capas concéntricas:
+                Este nivel de agnosticism arquitectónico garantiza una inmensa flexibilidad técnica dividiendo el software cliente y servidor en anillos modulares aislados:
             </p>
             <ul>
-                <li><span class="keyword">Core (Dominio):</span> Contiene las entidades puras y los puertos (interfaces) que definen los contratos para interactuar con repositorios externos.</li>
-                <li><span class="keyword">Aplicación:</span> Contiene los Casos de Uso (Servicios) que orquestan las operaciones de negocio, utilizando las entidades y dependiendo exclusivamente de los puertos definidos en el core.</li>
-                <li><span class="keyword">Infraestructura (Adaptadores):</span> Implementa detalles externos. Contiene los Driver Adapters (API REST con FastAPI) y Driven Adapters (Interacción con base de datos MySQL).</li>
+                <li><span class="keyword">Core (Dominio) / UI (Presentación):</span> Reglas de negocio puras en el back-end o renderizado puro del árbol DOM en el front-end, ignorando bases de datos o red.</li>
+                <li><span class="keyword">Aplicación (Servicios):</span> Casos de uso neutrales que abstraen el comportamiento transversal. Indiferentes a si la persistencia subyacente es MySQL, LocalStorage, un mock o una API externa.</li>
+                <li><span class="keyword">Infraestructura (Adaptadores):</span> Las clases "Driver" que interconectan la aplicación con el ecosistema externo físico (Base de datos, Fetch/APIs de navegador o frameworks HTTP).</li>
             </ul>
         </section>
 
         <section id="diagrama">
-            <h2>2. Diagrama de Arquitectura y Clases</h2>
-            <p>Se ha implementado una representación visual nativa y responsiva de las Entidades, Servicios y Controladores clave mapeados en el diseño Hexagonal.</p>
+            <h2>2. Topología Hexagonal End-to-End</h2>
+            <p>Se ha implementado una representación visual nativa y responsiva de los componentes tácticos tanto para el servidor Python/FastApi como para el cliente Javascript Modular.</p>
             
             <div class="arch-diagram">
                 
-                <div class="flow-arrow" style="font-size: 1.1rem; color: var(--primary);">
-                    Front-end (main.js / UI) invoca Rutas API
-                </div>
-
+                <h3 style="text-align:center; color: var(--primary); font-size: 1.5rem; margin-top: 0;">Arquitectura Back-end (Python / FastAPI)</h3>
+                
                 <div class="arch-grid">
                     
                     <!-- COLUMNA 1: INFRAESTRUCTURA (ENTRADA Y SALIDA) -->
@@ -344,9 +342,9 @@
                             </div>
                         </div>
 
-                        <div class="flow-arrow">Delegación (Inyección de Dependencias) a Capa de Casos de Uso</div>
+                        <div class="flow-arrow">Delegación a Casos de Uso</div>
                         
-                        <div class="class-box" style="margin-top: 2rem;">
+                        <div class="class-box">
                             <div class="class-header">
                                 <span class="class-meta">&lt;&lt;Driven Adapter / MySQL&gt;&gt;</span>
                                 <h4 class="class-name">MySQL...Repository</h4>
@@ -372,7 +370,6 @@
                                 <div class="method private">repository: ComicRepo</div>
                                 <div class="method">obtener_catalogo()</div>
                                 <div class="method">buscar_comics(q)</div>
-                                <div class="method">obtener_detalle(id)</div>
                             </div>
                         </div>
 
@@ -383,7 +380,7 @@
                             </div>
                             <div class="class-methods">
                                 <div class="method private">repository: UsuarioRepo</div>
-                                <div class="method">login(credenciales)</div>
+                                <div class="method">login(credentials)</div>
                                 <div class="method">registrar(usuario)</div>
                             </div>
                         </div>
@@ -395,8 +392,7 @@
                             </div>
                             <div class="class-methods">
                                 <div class="method private">repository: CompraRepo</div>
-                                <div class="method">procesar_compra(compra)</div>
-                                <div class="method">obtener_historial(id)</div>
+                                <div class="method">procesar_compra()</div>
                             </div>
                         </div>
                     </div>
@@ -428,7 +424,112 @@
                                 <div class="method">class Comic</div>
                                 <div class="method">class Usuario</div>
                                 <div class="method">class FinalizarCompra</div>
-                                <div class="method">class ItemCarrito</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <hr style="border:0; border-bottom: 2px dashed var(--border); margin: 3rem 0;">
+
+                <h3 style="text-align:center; color: var(--primary); font-size: 1.5rem; margin-top: 1rem;">Arquitectura Front-end (Vanilla JavaScript)</h3>
+                
+                <div class="arch-grid">
+                    
+                    <!-- FR COLUMNA 1: INFRAESTRUCTURA -->
+                    <div class="layer-box infra" style="border-color: #3b82f6; background: rgba(59, 130, 246, 0.02);">
+                        <div class="layer-title" style="color: #2563eb;">Infraestructura</div>
+                        
+                        <div class="class-box">
+                            <div class="class-header">
+                                <span class="class-meta">&lt;&lt;Adapter / Fetch API&gt;&gt;</span>
+                                <h4 class="class-name" style="color: #2563eb;">api.js</h4>
+                            </div>
+                            <div class="class-methods" style="font-size: 0.85rem;">
+                                <div class="method">request(endpoint)</div>
+                                <div class="method">get() | post() | delete()</div>
+                            </div>
+                        </div>
+
+                        <div class="class-box">
+                            <div class="class-header">
+                                <span class="class-meta">&lt;&lt;Adapter / LocalStorage&gt;&gt;</span>
+                                <h4 class="class-name" style="color: #2563eb;">storage.js</h4>
+                            </div>
+                            <div class="class-methods" style="font-size: 0.85rem;">
+                                <div class="method">guardar(clave, valor)</div>
+                                <div class="method">obtener(clave)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FR COLUMNA 2: APLICACIÓN -->
+                    <div class="layer-box">
+                        <div class="layer-title">Aplicación (Casos de Uso)</div>
+                        
+                        <div class="class-box">
+                            <div class="class-header">
+                                <span class="class-meta">&lt;&lt;Service&gt;&gt;</span>
+                                <h4 class="class-name">authService.js</h4>
+                            </div>
+                            <div class="class-methods" style="font-size: 0.8rem;">
+                                <div class="method private">api: ApiAdapter</div>
+                                <div class="method">login()</div>
+                                <div class="method">registrar()</div>
+                                <div class="method">obtenerUsuarioActual()</div>
+                            </div>
+                        </div>
+
+                        <div class="class-box">
+                            <div class="class-header">
+                                <span class="class-meta">&lt;&lt;Service&gt;&gt;</span>
+                                <h4 class="class-name">cartService.js</h4>
+                            </div>
+                            <div class="class-methods" style="font-size: 0.8rem;">
+                                <div class="method private">api, storage</div>
+                                <div class="method">procesarCompra()</div>
+                                <div class="method">agregarItem()</div>
+                            </div>
+                        </div>
+                        
+                        <div class="class-box">
+                            <div class="class-header">
+                                <span class="class-meta">&lt;&lt;Service&gt;&gt;</span>
+                                <h4 class="class-name">comicService.js</h4>
+                            </div>
+                            <div class="class-methods" style="font-size: 0.8rem;">
+                                <div class="method private">api: ApiAdapter</div>
+                                <div class="method">obtenerCatalogo()</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FR COLUMNA 3: PRESENTACIÓN -->
+                    <div class="layer-box core" style="border-color: #8b5cf6; background: rgba(139, 92, 246, 0.02);">
+                        <div class="layer-title" style="color: #8b5cf6;">Presentación / UI</div>
+                        
+                        <div class="class-box">
+                            <div class="class-header" style="background: rgba(139, 92, 246, 0.1);">
+                                <span class="class-meta">&lt;&lt;UI Component&gt;&gt;</span>
+                                <h4 class="class-name" style="color: #6d28d9;">domManager.js</h4>
+                            </div>
+                            <div class="class-methods" style="font-size: 0.85rem;">
+                                <div class="method">renderizarComics()</div>
+                                <div class="method">renderizarCarrito()</div>
+                                <div class="method">mostrarAlerta()</div>
+                            </div>
+                        </div>
+
+                        <div class="flow-arrow" style="color: #8b5cf6;">Inyector / Container</div>
+
+                        <div class="class-box">
+                            <div class="class-header" style="background: rgba(139, 92, 246, 0.1);">
+                                <span class="class-meta">&lt;&lt;Composition Root&gt;&gt;</span>
+                                <h4 class="class-name" style="color: #6d28d9;">main_hexagonal.js</h4>
+                            </div>
+                            <div class="class-methods" style="font-size: 0.82rem;">
+                                <div class="method">Instanciamiento de Dependencias</div>
+                                <div class="method">Asignación de Event Listeners</div>
                             </div>
                         </div>
                     </div>
@@ -468,22 +569,39 @@
                 <strong>Nota:</strong> Esta sección mapea rigurosamente el código actual, destacando los límites lógicos establecidos tanto para el Front-end como para el Back-end.
             </div>
 
-            <h3>4.1 Módulos del Front-end (Cliente)</h3>
+            <h3>4.1 Módulos del Front-end (Cliente Hexagonal JS)</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Archivo</th>
+                        <th>Directorio / Archivo</th>
                         <th>Responsabilidad Principal</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><span class="code-inline">HTML/CSS</span> (index, carrito, detalle...)</td>
-                        <td>Definición estructural y semántica de la Interfaz de Usuario. Presentación gráfica responsive para catálogos, registro y carritos interactivos.</td>
+                        <td><span class="code-inline">js/infrastructure/</span></td>
+                        <td>
+                            <strong>api.js:</strong> <span class="keyword">Driver genérico (Fetch API)</span> que estandariza las llamadas asíncronas HTTP, lanza las promesas y evalúa cabeceras de respuesta y errores.<br/><br/>
+                            <strong>storage.js:</strong> <span class="keyword">Abstracción (LocalStorage)</span> para retener persistencias locales desvinculando la lógica real del ecosistema Web Storage API.
+                        </td>
                     </tr>
                     <tr>
-                        <td><span class="code-inline">js/main.js</span></td>
-                        <td>Motor lógico del cliente. Gestiona el ciclo de vida del estado de autenticación (JWT o sesiones locales), el estado efímero del Carrito y la orquestación asíncrona de llamadas HTTP al Back-end con <span class="code-inline">fetch</span>.</td>
+                        <td><span class="code-inline">js/application/</span></td>
+                        <td>
+                            <strong>Servicios de Negocio:</strong> (<span class="code-inline">authService.js</span>, <span class="code-inline">cartService.js</span>) Son Casos de Uso. Evalúan las lógicas (ej. calcular coste total agregando cómics) utilizando los "puertos" inyectados externamente, totalmente agnósticos a UI/DOM.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-inline">js/ui/domManager.js</span></td>
+                        <td>
+                            <strong>Capa de Presentación:</strong> Funcionalidad 100% aislada para manipular el árbol DOM (usando `innerHTML`, `document.getElementById()`). Nunca hace llamadas directas a un Endpoint de base de datos.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="code-inline">js/main_hexagonal.js</span></td>
+                        <td>
+                            <strong>Composition Root (Raíz):</strong> Es el único archivo que instancia las implementaciones ("wiring"), resolviendo la <em>Inyección de Dependencias</em> e instanciando el servicio. Luego asocia los EventListeners del usuario disparando métodos del Dominio.
+                        </td>
                     </tr>
                 </tbody>
             </table>
