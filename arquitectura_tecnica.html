@@ -470,7 +470,7 @@
                         <div class="class-box">
                             <div class="class-header">
                                 <span class="class-meta">&lt;&lt;Service&gt;&gt;</span>
-                                <h4 class="class-name">authService.js</h4>
+                                <h4 class="class-name">usuarioService.js</h4>
                             </div>
                             <div class="class-methods" style="font-size: 0.8rem;">
                                 <div class="method private">api: ApiAdapter</div>
@@ -483,7 +483,7 @@
                         <div class="class-box">
                             <div class="class-header">
                                 <span class="class-meta">&lt;&lt;Service&gt;&gt;</span>
-                                <h4 class="class-name">cartService.js</h4>
+                                <h4 class="class-name">compraService.js</h4>
                             </div>
                             <div class="class-methods" style="font-size: 0.8rem;">
                                 <div class="method private">api, storage</div>
@@ -525,7 +525,7 @@
                         <div class="class-box">
                             <div class="class-header" style="background: rgba(139, 92, 246, 0.1);">
                                 <span class="class-meta">&lt;&lt;Composition Root&gt;&gt;</span>
-                                <h4 class="class-name" style="color: #6d28d9;">main_hexagonal.js</h4>
+                                <h4 class="class-name" style="color: #6d28d9;">mainHexagonal.js</h4>
                             </div>
                             <div class="class-methods" style="font-size: 0.82rem;">
                                 <div class="method">Instanciamiento de Dependencias</div>
@@ -588,7 +588,7 @@
                     <tr>
                         <td><span class="code-inline">js/application/</span></td>
                         <td>
-                            <strong>Servicios de Negocio:</strong> (<span class="code-inline">authService.js</span>, <span class="code-inline">cartService.js</span>) Son Casos de Uso. Evalúan las lógicas (ej. calcular coste total agregando cómics) utilizando los "puertos" inyectados externamente, totalmente agnósticos a UI/DOM.
+                            <strong>Servicios de Negocio:</strong> (<span class="code-inline">usuarioService.js</span>, <span class="code-inline">compraService.js</span>) Son Casos de Uso. Evalúan las lógicas (ej. calcular coste total agregando cómics) utilizando los "puertos" inyectados externamente, totalmente agnósticos a UI/DOM.
                         </td>
                     </tr>
                     <tr>
@@ -598,7 +598,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td><span class="code-inline">js/main_hexagonal.js</span></td>
+                        <td><span class="code-inline">js/mainHexagonal.js</span></td>
                         <td>
                             <strong>Composition Root (Raíz):</strong> Es el único archivo que instancia las implementaciones ("wiring"), resolviendo la <em>Inyección de Dependencias</em> e instanciando el servicio. Luego asocia los EventListeners del usuario disparando métodos del Dominio.
                         </td>

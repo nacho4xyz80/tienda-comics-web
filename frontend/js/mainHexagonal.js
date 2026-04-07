@@ -2,8 +2,8 @@
 import { ApiAdapter } from './infrastructure/api.js';
 import { StorageAdapter } from './infrastructure/storage.js';
 import { ComicService } from './application/comicService.js';
-import { AuthService } from './application/usuarioService.js';
-import { CartService } from './application/compraService.js';
+import { UsuarioService } from './application/usuarioService.js';
+import { CompraService } from './application/compraService.js';
 import { DomManager } from './ui/domManager.js';
 
 // 2. Instanciación e Inyección (Construimos el Hexágono)
@@ -12,16 +12,16 @@ const storage = new StorageAdapter();
 const ui = new DomManager();
 
 const comicService = new ComicService(api);
-const authService = new AuthService(api, storage);
-const cartService = new CartService(api, storage);
+const usuarioService = new UsuarioService(api, storage);
+const compraService = new CompraService(api, storage);
 
 // 3. Controladores de Vistas (Ejecutan lógica según la página)
 document.addEventListener('DOMContentLoaded', async () => {
     
     // --- ESTADO GLOBAL (Todas las páginas) ---
-    const usuario = authService.obtenerUsuarioActual();
+    const usuario = usuarioService.obtenerUsuarioActual();
     ui.actualizarMenuSesion(usuario);
-    ui.actualizarContadorCarrito(cartService.obtenerCarrito().length);
+    ui.actualizarContadorCarrito(compraService.obtenerCarrito().length);
 
     // --- PORTADA (index.html) ---
     if (document.getElementById('comics-container')) {
@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 ui.renderizarDetalle(comic);
                 
                 document.getElementById('btn-agregar-carrito').addEventListener('click', () => {
-                    cartService.agregarItem(comic);
-                    ui.actualizarContadorCarrito(cartService.obtenerCarrito().length);
+                    compraService.agregarItem(comic);
+                    ui.actualizarContadorCarrito(compraService.obtenerCarrito().length);
                     alert(`¡"${comic.titulo}" añadido al carrito!`);
                 });
             } catch (e) {
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- CARRITO (carrito.html) ---
     if (document.getElementById('cuerpo-carrito')) {
-        ui.renderizarCarrito(cartService.obtenerCarrito());
+        ui.renderizarCarrito(compraService.obtenerCarrito());
     }
 
     // --- HISTORIAL (mis-compras.html) ---
@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         try {
-            const historial = await cartService.obtenerHistorial(usuario.id);
+            const historial = await compraService.obtenerHistorial(usuario.id);
             ui.renderizarHistorial(historial);
         } catch (e) { console.error(e); }
     }
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             try {
-                const user = await authService.login(email, password);
+                const user = await usuarioService.login(email, password);
                 ui.mostrarAlerta('mensaje-login', `¡Bienvenido, ${user.nombre}!`, 'success');
                 setTimeout(() => window.location.href = 'index.html', 1500);
             } catch (error) {
@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
             try {
-                await authService.registrar(nombre, email, password);
+                await usuarioService.registrar(nombre, email, password);
                 ui.mostrarAlerta('mensaje-registro', 'Cuenta creada. Redirigiendo...', 'success');
                 setTimeout(() => window.location.href = 'login.html', 1500);
             } catch (error) {
@@ -117,28 +117,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Los Módulos de JS (type="module") aíslan las funciones. Para que botones HTML 
 // con onclick="eliminarDelCarrito(1)" funcionen, debemos exponerlas al objeto window.
 window.eliminarDelCarrito = (index) => {
-    cartService.eliminarItem(index);
-    ui.renderizarCarrito(cartService.obtenerCarrito());
-    ui.actualizarContadorCarrito(cartService.obtenerCarrito().length);
+    compraService.eliminarItem(index);
+    ui.renderizarCarrito(compraService.obtenerCarrito());
+    ui.actualizarContadorCarrito(compraService.obtenerCarrito().length);
 };
 
 window.vaciarCarrito = () => {
     if(confirm("¿Seguro que quieres vaciar el carrito?")) {
-        cartService.vaciarCarrito();
-        ui.renderizarCarrito(cartService.obtenerCarrito());
+        compraService.vaciarCarrito();
+        ui.renderizarCarrito(compraService.obtenerCarrito());
         ui.actualizarContadorCarrito(0);
     }
 };
 
 window.simularCompra = async () => {
-    const user = authService.obtenerUsuarioActual();
+    const user = usuarioService.obtenerUsuarioActual();
     if (!user) {
         alert("Debes iniciar sesión para comprar.");
         window.location.href = "login.html";
         return;
     }
     try {
-        const idCompra = await cartService.procesarCompra(user.id);
+        const idCompra = await compraService.procesarCompra(user.id);
         alert(`¡Compra #${idCompra} realizada con éxito!`);
         window.location.href = "index.html";
     } catch (e) {
@@ -147,14 +147,14 @@ window.simularCompra = async () => {
 };
 
 window.cerrarSesion = () => {
-    authService.logout();
+    usuarioService.logout();
     window.location.reload();
 };
 
 window.eliminarCuenta = async () => {
     if (confirm("¿Estás seguro de borrar tu cuenta? Esto no se puede deshacer.")) {
         try {
-            await authService.eliminarCuenta();
+            await usuarioService.eliminarCuenta();
             alert("Cuenta eliminada correctamente.");
             window.location.reload();
         } catch (e) {

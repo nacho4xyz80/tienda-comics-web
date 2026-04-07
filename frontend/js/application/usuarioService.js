@@ -1,4 +1,4 @@
-export class AuthService {
+export class UsuarioService {
     constructor(apiAdapter, storageAdapter) {
         this.api = apiAdapter;
         this.storage = storageAdapter;

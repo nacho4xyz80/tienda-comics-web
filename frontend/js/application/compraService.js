@@ -1,4 +1,4 @@
-export class CartService {
+export class CompraService {
     constructor(apiAdapter, storageAdapter) {
         this.api = apiAdapter;
         this.storage = storageAdapter;
